@@ -4,6 +4,7 @@
 
 // ВАЖЛИВО: Оскільки в твоєму .env порт 9001, ми стукаємо туди
 export const API_URL = 'https://serv-production-2768.up.railway.app/api/auth';
+export const USER_PROFILE_URL = 'https://serv-production-2768.up.railway.app/api/auth/me';
 
 export const elements = {
     title: document.getElementById('header-title'),

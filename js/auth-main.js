@@ -1,10 +1,82 @@
-import { API_URL, elements, state } from './config.js';
+import { API_URL, USER_PROFILE_URL, elements, state } from './config.js';
 import { showMessage, hideMessage, setLoading, switchMode } from './ui-utils.js';
 
-/**
- * Функція для обробки Google OAuth
- * Перевіряє наявність токена або помилки в URL після редіректу
- */
+export async function getAuthorizedUser() {
+    let token = localStorage.getItem('accessToken');
+
+    if (!token) {
+        console.warn('[Auth Service] No access token found');
+        return null;
+    }
+
+    try {
+        // 1. Пробуємо отримати профіль юзера
+        let response = await fetch(USER_PROFILE_URL, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // 2. Якщо токен протермінований (401), пробуємо Refresh
+        if (response.status === 401) {
+            console.log('[Auth Service] Access token expired, trying refresh...');
+            const newToken = await refreshTokens();
+            
+            if (newToken) {
+                // 3. Якщо рефреш успішний, робимо повторний запит за профілем
+                response = await fetch(USER_PROFILE_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${newToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } else {
+                return null; // Рефреш не вдався
+            }
+        }
+
+        if (!response.ok) throw new Error('Failed to fetch user');
+
+        return await response.json();
+    } catch (err) {
+        console.error('[Auth Service Error]:', err);
+        return null;
+    }
+}
+
+async function refreshTokens() {
+    try {
+        const response = await fetch(`${API_URL}/refresh`, {
+            method: 'POST', // або GET, залежно від твого сервера
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include' // ВАЖЛИВО: для передачі Refresh Cookie
+        });
+
+        if (!response.ok) throw new Error('Refresh session expired');
+
+        const data = await response.json();
+        if (data.accessToken) {
+            localStorage.setItem('accessToken', data.accessToken);
+            console.log('[Auth Service] Token refreshed successfully');
+            return data.accessToken;
+        }
+        return null;
+    } catch (err) {
+        console.warn('[Auth Service] Refresh failed, session lost');
+        localStorage.removeItem('accessToken');
+        return null;
+    }
+}
+
+export function logout() {
+    localStorage.removeItem('accessToken');
+    // Можна додати запит на бекенд для очищення кук
+    window.location.href = 'index.html';
+}
+
 export function handleGoogleOAuth() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
