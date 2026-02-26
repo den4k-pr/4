@@ -4,7 +4,7 @@ import { elements, showMessage, hideMessage, setLoading } from './ui.js';
 
 let isLoginMode = true;
 
-async function handleAuth(e) {
+export async function handleAuth(e) {
     e.preventDefault();
     hideMessage();
     const email = elements.email.value.trim();
