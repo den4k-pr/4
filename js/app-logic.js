@@ -5,7 +5,7 @@ async function initApp() {
     
     // Перевіряємо юзера
     const user = await getAuthorizedUser();
-
+    console.log(user)
     if (!user) {
         console.error('[App] Not authorized! Redirecting to login...');
         window.location.href = 'index.html';
