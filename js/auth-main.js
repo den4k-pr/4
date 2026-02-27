@@ -77,24 +77,38 @@ export function logout() {
     window.location.href = 'index.html';
 }
 
+export function startGoogleAuth() {
+    const performer = document.getElementById('performer').value.trim();
+    if (!performer) {
+        return showMessage('Please enter Performer name before using Google.', 'error');
+    }
+    // Запам'ятовуємо виконавця перед тим, як покинути сторінку
+    localStorage.setItem('pendingPerformer', performer);
+    
+    // Тепер ідемо на сервер для авторизації
+    window.location.href = `${API_URL}/google`;
+}
+
 export function handleGoogleOAuth() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const error = urlParams.get('error');
 
-    if (error === 'critical_auth_failure') {
-        showMessage('Google Authentication failed. Please try again or use email.', 'error');
-        // Очищаємо URL щоб помилка не висіла при оновленні сторінки
-        window.history.replaceState({}, document.title, window.location.pathname);
+    if (error) {
+        showMessage('Auth failed', 'error');
         return;
     }
 
     if (token) {
-        // Зберігаємо отриманий токен
+        // ДІСТАЄМО НАШОГО ВИКОНАВЦЯ
+        const pendingPerformer = localStorage.getItem('pendingPerformer');
+        if (pendingPerformer) {
+            localStorage.setItem('currentPerformer', pendingPerformer);
+            localStorage.removeItem('pendingPerformer'); // Чистимо тимчасовий запис
+        }
+
         localStorage.setItem('accessToken', token);
-        // Очищаємо URL від токена для безпеки
         window.history.replaceState({}, document.title, window.location.pathname);
-        // Редірект на головний додаток
         window.location.href = 'app.html';
     }
 }
