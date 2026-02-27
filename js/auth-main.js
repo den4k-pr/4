@@ -77,9 +77,15 @@ export function logout() {
     window.location.href = 'index.html';
 }
 
-export function startGoogleAuth() {
+function startGoogleAuth() {
   const performerInput = document.getElementById('performer');
-  const performer = performerInput?.value?.trim();
+
+  if (!performerInput) {
+    alert('Performer input not found in DOM!');
+    return;
+  }
+
+  const performer = performerInput.value.trim();
 
   if (!performer) {
     alert('Enter performer name');
@@ -88,7 +94,6 @@ export function startGoogleAuth() {
 
   localStorage.setItem('pendingPerformer', performer);
 
-  // важливо: encodeURIComponent
   window.location.href = `${API_URL}/google?state=${encodeURIComponent(performer)}`;
 }
 
