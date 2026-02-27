@@ -78,14 +78,13 @@ export function logout() {
 }
 
 export function startGoogleAuth() {
-    const performer = document.getElementById('performer').value.trim();
-    if (!performer) {
-        return showMessage('Please enter Performer name before using Google.', 'error');
-    }
-    // Запам'ятовуємо виконавця перед тим, як покинути сторінку
+    // Беремо значення прямо з твого прихованого інпуту
+    const performer = document.getElementById('performer').value;
+    
+    // Зберігаємо в кеш, щоб після редіректу знати, хто це був
     localStorage.setItem('pendingPerformer', performer);
     
-    // Тепер ідемо на сервер для авторизації
+    // Прямий перехід на бекенд Google Auth
     window.location.href = `${API_URL}/google`;
 }
 
@@ -95,16 +94,16 @@ export function handleGoogleOAuth() {
     const error = urlParams.get('error');
 
     if (error) {
-        showMessage('Auth failed', 'error');
+        showMessage('Google Authentication failed.', 'error');
         return;
     }
 
     if (token) {
-        // ДІСТАЄМО НАШОГО ВИКОНАВЦЯ
+        // Підхоплюємо нашого EDGRIND з кешу
         const pendingPerformer = localStorage.getItem('pendingPerformer');
         if (pendingPerformer) {
             localStorage.setItem('currentPerformer', pendingPerformer);
-            localStorage.removeItem('pendingPerformer'); // Чистимо тимчасовий запис
+            localStorage.removeItem('pendingPerformer');
         }
 
         localStorage.setItem('accessToken', token);
@@ -120,27 +119,16 @@ async function handleAuth(e) {
 
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    // ОТРИМУЄМО ВИКОНАВЦЯ (додай цей input в HTML з id="performer")
-    const performer = document.getElementById('performer').value.trim(); 
-    
-    if (!performer) {
-        return showMessage('Please enter Performer name.', 'error');
-    }
+    const performer = document.getElementById('performer').value; // Наш EDGRIND
 
-    // Локальна перевірка паролів для реєстрації
     if (!state.isLoginMode) {
         const confirmPassword = document.getElementById('confirm-password').value;
         if (password !== confirmPassword) {
             return showMessage('Passwords do not match.', 'error');
         }
-        if (password.length < 6) {
-            return showMessage('Password must be at least 6 characters long.', 'error');
-        }
     }
 
-    // ДОДАЄМО performer В ПЕЙЛОАД
     const payload = { email, password, performer };
-
     const endpoint = state.isLoginMode ? '/login' : '/register';
     setLoading(true);
 
@@ -153,21 +141,13 @@ async function handleAuth(e) {
         });
 
         const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Auth failed');
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Authentication failed');
-        }
-
-        // ЗБЕРІГАЄМО ТОКЕН ТА ВИКОНАВЦЯ
         localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('currentPerformer', performer); // ВАЖЛИВО для наступних запитів
+        localStorage.setItem('currentPerformer', performer); // Зберігаємо EDGRIND
 
-        showMessage(state.isLoginMode ? 'Login successful!' : 'Account created!', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'app.html';
-        }, 1200);
-
+        showMessage('Success! Redirecting...', 'success');
+        setTimeout(() => { window.location.href = 'app.html'; }, 1200);
     } catch (err) {
         showMessage(err.message, 'error');
     } finally {
@@ -179,7 +159,7 @@ async function handleAuth(e) {
 window.switchMode = switchMode;
 window.handleAuth = handleAuth;
 window.handleGoogleOAuth = handleGoogleOAuth;
-
+window.startGoogleAuth = startGoogleAuth;
 // Виконуємо перевірку OAuth при кожному завантаженні сторінки
 window.onload = () => {
     handleGoogleOAuth();
