@@ -17,7 +17,27 @@
   --red: #ff4455;
   --green: #ff2442;
 }
+.user-email-badge {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    font-weight: 600;
+    font-family: 'Segoe UI', sans-serif;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    cursor: default;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+}
 
+.user-email-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
 /* Базовий стан */
 body.loading {
     overflow: hidden;

@@ -7,6 +7,12 @@ const elements = {
     mainContent: document.getElementById('app-main')
 };
 
+function updateUserEmailBadge(email) {
+    const badge = document.getElementById('user-email-badge'); // припускаємо, що він уже в HTML
+    if (!badge) return;
+    badge.textContent = email;
+}
+
 function hidePreloader() {
     if (elements.preloader) {
         elements.preloader.classList.add('fade-out');
@@ -46,6 +52,7 @@ async function initApp() {
         // Викликаємо функцію, яку ми створили в main.js
         initAppUI(); 
         // -----------------------------------
+        if (response.user.user.email) updateUserEmailBadge(response.user.user.email);
 
         hidePreloader();
 
