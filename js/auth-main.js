@@ -78,38 +78,38 @@ export function logout() {
 }
 
 export function startGoogleAuth() {
-    // Беремо значення прямо з твого прихованого інпуту
-    const performer = document.getElementById('performer').value;
-    
-    // Зберігаємо в кеш, щоб після редіректу знати, хто це був
-    localStorage.setItem('pendingPerformer', performer);
-    
-    // Прямий перехід на бекенд Google Auth
-    window.location.href = `${API_URL}/google`;
+  const performerInput = document.getElementById('performer');
+  const performer = performerInput?.value?.trim();
+
+  if (!performer) {
+    alert('Enter performer name');
+    return;
+  }
+
+  localStorage.setItem('pendingPerformer', performer);
+
+  // важливо: encodeURIComponent
+  window.location.href = `${API_URL}/google?state=${encodeURIComponent(performer)}`;
 }
 
-export function handleGoogleOAuth() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const error = urlParams.get('error');
 
-    if (error) {
-        showMessage('Google Authentication failed.', 'error');
-        return;
-    }
+export async function handleGoogleOAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
 
-    if (token) {
-        // Підхоплюємо нашого EDGRIND з кешу
-        const pendingPerformer = localStorage.getItem('pendingPerformer');
-        if (pendingPerformer) {
-            localStorage.setItem('currentPerformer', pendingPerformer);
-            localStorage.removeItem('pendingPerformer');
-        }
+  if (!token) return;
 
-        localStorage.setItem('accessToken', token);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = 'app.html';
-    }
+  // performer вже гарантовано записаний сервером
+  localStorage.setItem('accessToken', token);
+
+  const performer = localStorage.getItem('pendingPerformer');
+  if (performer) {
+    localStorage.setItem('currentPerformer', performer);
+    localStorage.removeItem('pendingPerformer');
+  }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+  window.location.href = 'app.html';
 }
 
 // Головна функція відправки даних форми (Email/Password)
