@@ -48,6 +48,7 @@ export let state = {
     curYear: new Date().getFullYear(),
     mDate: null,
     mStatus: null,
+    performer: localStorage.getItem('currentPerformer') || 'default',
     userId: null,
     token: null
 };

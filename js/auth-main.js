@@ -106,7 +106,13 @@ async function handleAuth(e) {
 
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    // ОТРИМУЄМО ВИКОНАВЦЯ (додай цей input в HTML з id="performer")
+    const performer = document.getElementById('performer').value.trim(); 
     
+    if (!performer) {
+        return showMessage('Please enter Performer name.', 'error');
+    }
+
     // Локальна перевірка паролів для реєстрації
     if (!state.isLoginMode) {
         const confirmPassword = document.getElementById('confirm-password').value;
@@ -118,10 +124,10 @@ async function handleAuth(e) {
         }
     }
 
-    const payload = { email, password };
+    // ДОДАЄМО performer В ПЕЙЛОАД
+    const payload = { email, password, performer };
 
     const endpoint = state.isLoginMode ? '/login' : '/register';
-    console.log(`[Auth] Sending request to ${endpoint}...`);
     setLoading(true);
 
     try {
@@ -138,17 +144,17 @@ async function handleAuth(e) {
             throw new Error(data.error || 'Authentication failed');
         }
 
-        console.log('[Auth] Success! Access Token received.');
-        showMessage(state.isLoginMode ? 'Login successful! Redirecting...' : 'Account created! Redirecting...', 'success');
-        
+        // ЗБЕРІГАЄМО ТОКЕН ТА ВИКОНАВЦЯ
         localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('currentPerformer', performer); // ВАЖЛИВО для наступних запитів
 
+        showMessage(state.isLoginMode ? 'Login successful!' : 'Account created!', 'success');
+        
         setTimeout(() => {
             window.location.href = 'app.html';
         }, 1200);
 
     } catch (err) {
-        console.error('[Auth Error]:', err.message);
         showMessage(err.message, 'error');
     } finally {
         setLoading(false);
