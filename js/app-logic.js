@@ -1,23 +1,18 @@
 import { getAuthorizedUser, logout } from './auth-main.js';
+import { fetchInitialData } from './main/storage.js'; // Додаємо імпорт
+import { initAppUI } from './main/main.js';           // Додаємо імпорт
 
 const elements = {
     preloader: document.getElementById('app-preloader'),
     mainContent: document.getElementById('app-main')
 };
 
-/**
- * Функція плавного приховування прелоадера
- */
 function hidePreloader() {
     if (elements.preloader) {
         elements.preloader.classList.add('fade-out');
-        
-        // Показуємо основний контент
         if (elements.mainContent) {
             elements.mainContent.style.display = 'block';
         }
-
-        // Прибираємо клас блокування скролу з body
         setTimeout(() => {
             document.body.classList.remove('loading');
         }, 500);
@@ -31,23 +26,27 @@ async function initApp() {
     console.log('[App] Initializing protection check...');
     
     try {
-        // Чекаємо на відповідь від сервера
         const response = await getAuthorizedUser();
 
-        // Перевіряємо за твоїм форматом: { success: true, user: { ... } }
         if (!response || !response.user) {
             console.error('[App] Not authorized! Redirecting...');
             window.location.href = 'index.html';
             return;
         }
 
-        // Якщо ми тут — авторизація успішна
         console.log('[App] Authorization confirmed.');
         
-        // Тут можна викликати функції завантаження твоїх даних SyncData
-        // loadSyncData(response.user._id);
+        // --- ОСЬ ТУТ МАГІЯ СИНХРОНІЗАЦІЇ ---
+        const token = localStorage.getItem('accessToken');
+        
+        // 1. Чекаємо завантаження даних з сервера (це оновить state і localStorage)
+        await fetchInitialData(response.user._id, token);
 
-        // Приховуємо прелоадер
+        // 2. Ініціалізуємо інтерфейс (малюємо календар, заповнюємо інпути)
+        // Викликаємо функцію, яку ми створили в main.js
+        initAppUI(); 
+        // -----------------------------------
+
         hidePreloader();
 
     } catch (err) {
@@ -56,8 +55,5 @@ async function initApp() {
     }
 }
 
-// Прив'язка Logout до window
 window.handleLogout = logout;
-
-// Запуск при завантаженні DOM
 document.addEventListener('DOMContentLoaded', initApp);
