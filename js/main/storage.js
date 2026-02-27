@@ -1,6 +1,6 @@
 // storage.js
 
-const API_BASE = 'http://localhost:3000/api/sync';
+const API_BASE = 'https://serv-production-2768.up.railway.app/api/sync';
 
 /**
  * STATE: Ініціалізується миттєво з localStorage.
