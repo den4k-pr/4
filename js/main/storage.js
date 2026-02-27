@@ -3,13 +3,47 @@
 const API_BASE = 'https://serv-production-2768.up.railway.app/api/sync';
 
 /**
- * STATE: Ініціалізується миттєво з localStorage.
- * Це гарантує, що UI не розвалиться при старті.
+ * ============================
+ * HELPERS
+ * ============================
  */
+
+const log = (...args) => console.log('%c[Storage]', 'color:#4CAF50', ...args);
+const warn = (...args) => console.warn('%c[Storage]', 'color:#FF9800', ...args);
+const error = (...args) => console.error('%c[Storage]', 'color:#F44336', ...args);
+
+function readCache(key, fallback = {}) {
+    const raw = localStorage.getItem(key);
+    log(`Reading cache key="${key}"`, raw);
+
+    try {
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+        error(`Failed to parse cache key="${key}"`, e);
+        return fallback;
+    }
+}
+
+function writeCache(key, value) {
+    log(`Writing cache key="${key}"`, value);
+    localStorage.setItem(key, JSON.stringify(value));
+}
+
+/**
+ * ============================
+ * STATE (INIT FROM CACHE)
+ * ============================
+ * Ініціалізується миттєво з localStorage,
+ * щоб UI не розвалився при старті.
+ */
+
+const cachedCalc = readCache('fuel_calc_v3', {});
+const cachedDays = readCache('fuel_days_v3', {});
+
 export let state = {
-    sex: JSON.parse(localStorage.getItem('fuel_calc_v3') || '{}').sex || 'male',
-    days: JSON.parse(localStorage.getItem('fuel_days_v3') || '{}'),
-    calc: JSON.parse(localStorage.getItem('fuel_calc_v3') || '{}'),
+    sex: cachedCalc.sex || 'male',
+    days: cachedDays,
+    calc: cachedCalc,
     curMonth: new Date().getMonth(),
     curYear: new Date().getFullYear(),
     mDate: null,
@@ -18,102 +52,194 @@ export let state = {
     token: null
 };
 
+log('Initial state hydrated from cache:', structuredClone(state));
+
 /**
- * ФОНОВА СИНХРОНІЗАЦІЯ:
- * Відправляє дані на сервер, не блокуючи роботу інтерфейсу.
+ * ============================
+ * BACKGROUND CLOUD SYNC
+ * ============================
+ * Відправляє дані на сервер,
+ * не блокуючи UI
  */
+
 async function triggerServerSync(key, payload) {
-    if (!state.userId || !state.token) return;
+    if (!state.userId || !state.token) {
+        warn('Cloud sync skipped (no auth)', { key });
+        return;
+    }
+
+    log('Cloud sync started', {
+        key,
+        payload,
+        userId: state.userId
+    });
 
     try {
         const response = await fetch(`${API_BASE}/${state.userId}`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${state.token}`
             },
             credentials: 'omit',
-            body: JSON.stringify({ storageKey: key, payload })
+            body: JSON.stringify({
+                storageKey: key,
+                payload
+            })
         });
 
-        if (!response.ok) throw new Error(`Server status: ${response.status}`);
-        console.log(`[Cloud] ${key} synced successfully.`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        log('Cloud sync success', { key });
     } catch (err) {
-        console.error(`[Cloud Sync Error] ${key}:`, err.message);
-        // Тут можна додати логіку черги (retry), якщо сервер ліг
+        error('Cloud sync failed', {
+            key,
+            message: err.message
+        });
+        // Тут можна додати retry / queue
     }
 }
 
 /**
- * ПЕРЕВІРКА ТА ОНОВЛЕННЯ ДАНИХ (STARTUP):
- * Викликається в app.js. Отримує "свіжі" дані з сервера і оновлює кеш.
+ * ============================
+ * FETCH INITIAL DATA (STARTUP)
+ * ============================
+ * Тягнемо свіжі дані з сервера
+ * і оновлюємо локальний кеш
  */
+
 export async function fetchInitialData(userId, token) {
+    log('Initial cloud fetch started', { userId });
+
     state.userId = userId;
     state.token = token;
 
     try {
         const response = await fetch(`${API_BASE}/${userId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
 
-        if (!response.ok) throw new Error('Cloud unreachable');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
         const cloudData = await response.json();
+        log('Cloud data received', cloudData);
 
-        if (cloudData) {
-            let hasChanges = false;
-
-            // Звіряємо та оновлюємо розрахунки (calc)
-            if (cloudData.fuel_calc_v3 && Object.keys(cloudData.fuel_calc_v3).length > 0) {
-                state.calc = cloudData.fuel_calc_v3;
-                localStorage.setItem('fuel_calc_v3', JSON.stringify(state.calc));
-                if (state.calc.sex) state.sex = state.calc.sex;
-                hasChanges = true;
-            }
-
-            // Звіряємо та оновлюємо календар (days)
-            if (cloudData.fuel_days_v3 && Object.keys(cloudData.fuel_days_v3).length > 0) {
-                state.days = cloudData.fuel_days_v3;
-                localStorage.setItem('fuel_days_v3', JSON.stringify(state.days));
-                hasChanges = true;
-            }
-
-            if (hasChanges) console.log('[Cloud] Local cache updated from server.');
+        if (!cloudData) {
+            warn('Cloud returned empty payload');
+            return;
         }
+
+        let hasChanges = false;
+
+        /**
+         * ---- CALC ----
+         */
+        if (
+            cloudData.fuel_calc_v3 &&
+            Object.keys(cloudData.fuel_calc_v3).length > 0
+        ) {
+            log('Updating calc from cloud', cloudData.fuel_calc_v3);
+
+            state.calc = cloudData.fuel_calc_v3;
+            writeCache('fuel_calc_v3', state.calc);
+
+            if (state.calc.sex) {
+                state.sex = state.calc.sex;
+                log('Sex updated from calc', state.sex);
+            }
+
+            hasChanges = true;
+        } else {
+            log('Cloud calc empty → keeping local cache');
+        }
+
+        /**
+         * ---- DAYS ----
+         */
+        if (
+            cloudData.fuel_days_v3 &&
+            Object.keys(cloudData.fuel_days_v3).length > 0
+        ) {
+            log('Updating days from cloud', cloudData.fuel_days_v3);
+
+            state.days = cloudData.fuel_days_v3;
+            writeCache('fuel_days_v3', state.days);
+
+            hasChanges = true;
+        } else {
+            log('Cloud days empty → keeping local cache');
+        }
+
+        if (hasChanges) {
+            log('Local cache updated from cloud');
+            log('Current state after sync:', structuredClone(state));
+        } else {
+            log('No cloud changes applied');
+        }
+
     } catch (err) {
-        console.warn('[Cloud] Using offline mode (cache only):', err.message);
+        warn('Cloud unreachable → offline mode', err.message);
     }
 }
 
 /**
- * ЗБЕРЕЖЕННЯ ДНІВ:
- * Пишемо в стейт, в кеш і відправляємо на сервер одночасно.
+ * ============================
+ * SAVE DAYS
+ * ============================
  */
+
 export function saveDaysToCache(newDays) {
+    log('saveDaysToCache called', newDays);
+
     state.days = newDays;
-    localStorage.setItem('fuel_days_v3', JSON.stringify(newDays));
+    writeCache('fuel_days_v3', newDays);
+
     triggerServerSync('fuel_days_v3', newDays);
+
+    log('Days saved. Current state.days:', structuredClone(state.days));
 }
 
 /**
- * ЗБЕРЕЖЕННЯ РОЗРАХУНКІВ:
- * Пишемо в стейт, в кеш і відправляємо на сервер одночасно.
+ * ============================
+ * SAVE CALC
+ * ============================
  */
+
 export function saveCalcToCache(newCalc) {
+    log('saveCalcToCache called', newCalc);
+
     state.calc = newCalc;
-    if (newCalc.sex) state.sex = newCalc.sex;
-    
-    localStorage.setItem('fuel_calc_v3', JSON.stringify(newCalc));
+
+    if (newCalc.sex) {
+        state.sex = newCalc.sex;
+        log('Sex updated from calc save', state.sex);
+    }
+
+    writeCache('fuel_calc_v3', newCalc);
     triggerServerSync('fuel_calc_v3', newCalc);
+
+    log('Calc saved. Current state.calc:', structuredClone(state.calc));
 }
 
-// Конфігураційні константи
+/**
+ * ============================
+ * CONSTANTS
+ * ============================
+ */
+
 export const MONTHS = [
     'January','February','March','April','May','June',
     'July','August','September','October','November','December'
 ];
+
 export const DAYS_S = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
 export const DAYS_F = [
     'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'
 ];
