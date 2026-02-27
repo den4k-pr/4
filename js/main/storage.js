@@ -64,41 +64,30 @@ log('Initial state hydrated from cache:', structuredClone(state));
 
 async function triggerServerSync(key, payload) {
     if (!state.userId || !state.token) {
-        warn('Cloud sync skipped (no auth)', { key });
+        console.warn('[Sync] No userId or token, skipping server sync');
         return;
     }
 
-    log('Cloud sync started', {
-        key,
-        payload,
-        userId: state.userId
-    });
+    console.log('[Sync] Sending to server:', { storageKey: key, payload }); // ПЕРЕВІР ЦЕ В КОНСОЛІ
 
     try {
         const response = await fetch(`${API_BASE}/${state.userId}`, {
             method: 'POST',
-            headers: {
+            headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${state.token}`
             },
             credentials: 'omit',
-            body: JSON.stringify({
-                storageKey: key,
-                payload
-            })
+            body: JSON.stringify({ storageKey: key, payload })
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errData = await response.json();
+            throw new Error(errData.error || `Server status: ${response.status}`);
         }
-
-        log('Cloud sync success', { key });
+        console.log(`[Cloud] ${key} synced.`);
     } catch (err) {
-        error('Cloud sync failed', {
-            key,
-            message: err.message
-        });
-        // Тут можна додати retry / queue
+        console.error(`[Cloud Sync Error]`, err.message);
     }
 }
 
