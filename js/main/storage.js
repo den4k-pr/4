@@ -32,6 +32,7 @@ async function triggerServerSync(key, payload) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${state.token}`
             },
+            credentials: 'omit',
             body: JSON.stringify({ storageKey: key, payload })
         });
 
