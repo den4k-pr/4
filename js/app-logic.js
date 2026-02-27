@@ -52,7 +52,7 @@ async function initApp() {
         // Викликаємо функцію, яку ми створили в main.js
         initAppUI(); 
         // -----------------------------------
-        if (response.user.user.email) updateUserEmailBadge(response.user.user.email);
+        if (response.user.email) updateUserEmailBadge(response.user.email);
 
         hidePreloader();
 
