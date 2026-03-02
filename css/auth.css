@@ -300,8 +300,10 @@ body {
     top: 20px;
     right: 20px;
     font-size: 18px;
-    line-height: 18;
+    line-height: 18px;
     display: block;
+    background: none;
+    border: navajowhite;
     color: #fff;
 }
 .reset-modal {

@@ -1,5 +1,5 @@
 import { API_URL, USER_PROFILE_URL, elements, state } from './config.js';
-import { showMessage, hideMessage, setLoading, switchMode, openResetModal } from './ui-utils.js';
+import { showMessage, hideMessage, setLoading, switchMode, openResetModal, closeResetModal } from './ui-utils.js';
 
 export async function getAuthorizedUser() {
     let token = localStorage.getItem('accessToken');
