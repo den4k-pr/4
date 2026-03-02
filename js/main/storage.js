@@ -37,13 +37,13 @@ function writeCache(key, value) {
  * щоб UI не розвалився при старті.
  */
 
-const cachedCalc = readCache('fuel_calc_v3', {});
-const cachedDays = readCache('fuel_days_v3', {});
+const cachedCalc_edgrind = readCache('fuel_calc_v3_edgrind', {});
+const cachedDays_edgrind = readCache('fuel_days_v3_edgrind', {});
 
 export let state = {
-    sex: cachedCalc.sex || 'male',
-    days: cachedDays,
-    calc: cachedCalc,
+    sex: cachedCalc_edgrind.sex || 'male',
+    days: cachedDays_edgrind,
+    calc: cachedCalc_edgrind,
     curMonth: new Date().getMonth(),
     curYear: new Date().getFullYear(),
     mDate: null,
