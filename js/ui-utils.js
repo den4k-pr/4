@@ -28,6 +28,16 @@ export function goToPasswordStep() {
 
 export function closeResetModal() {
     elements.resetModal.classList.add('hidden');
+
+    // скидання на перший крок
+    elements.stepEmail.classList.remove('hidden');
+    elements.stepCode.classList.add('hidden');
+    elements.stepPassword.classList.add('hidden');
+    state.resetMode = 'email';
+}
+
+if (elements.resetModalClose) {
+    elements.resetModalClose.addEventListener('click', closeResetModal);
 }
 
 export function setLoading(isLoading) {
