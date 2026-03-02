@@ -1,4 +1,4 @@
-import { state, saveDaysToCache, saveCalcToCache, MONTHS, DAYS_S, DAYS_F } from './storage.js';
+import { state, saveDaysToServer, saveDaysToServer as saveDaysToCache, MONTHS, DAYS_S, DAYS_F } from './storage.js';
 import { idealWeights, bmi, bmiCategory } from './formulas.js';
 
 export function setSex(s, btn) {
@@ -29,7 +29,7 @@ export function calculate() {
     const toLose = Math.max(w - goal, 0);
 
     const newCalc = { age, height: h, weight: w, goal, sex: state.sex, tdee, tdeeGoal, def, defCals, prot, fat, carb, toLose };
-    saveCalcToCache(newCalc);
+    saveCalcToServer(newCalc);
 
     document.getElementById('r-cals').textContent = defCals;
     document.getElementById('r-prot').textContent = prot;
