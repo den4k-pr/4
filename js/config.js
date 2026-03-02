@@ -28,5 +28,7 @@ export const elements = {
 
 export let state = {
     isLoginMode: true,
-    resetMode: null
+    resetMode: 'email',
+    resetEmail: null,
+    resetCode: null
 };

@@ -154,40 +154,112 @@ function setupCodeInputs() {
     });
 }
 
-function goToCodeStep() {
-    const email = document.getElementById('reset-email').value;
+async function goToCodeStep() {
+    const email = document.getElementById('reset-email').value.trim();
     if (!email) {
-        alert('Enter email');
+        showMessage('Enter email', 'error');
         return;
     }
-    elements.stepEmail.classList.add('hidden');
-    elements.stepCode.classList.remove('hidden');
+
+    setLoading(true);
+
+    try {
+        const res = await fetch(`${API_URL}/reset-request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to send code');
+
+        // зберігаємо email для наступних кроків
+        state.resetEmail = email;
+
+        elements.stepEmail.classList.add('hidden');
+        elements.stepCode.classList.remove('hidden');
+    } catch (err) {
+        showMessage(err.message, 'error');
+    } finally {
+        setLoading(false);
+    }
 }
 
-function goToPasswordStep() {
+async function goToPasswordStep() {
     const inputs = document.querySelectorAll('.code-inputs input');
     const code = Array.from(inputs).map(i => i.value).join('');
 
     if (code.length !== inputs.length) {
-        alert('Enter full code');
+        showMessage('Enter full code', 'error');
         return;
     }
 
-    elements.stepCode.classList.add('hidden');
-    elements.stepPassword.classList.remove('hidden');
+    setLoading(true);
+
+    try {
+        const res = await fetch(`${API_URL}/verify-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: state.resetEmail,
+                code
+            })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Invalid code');
+
+        state.resetCode = code;
+
+        elements.stepCode.classList.add('hidden');
+        elements.stepPassword.classList.remove('hidden');
+    } catch (err) {
+        showMessage(err.message, 'error');
+    } finally {
+        setLoading(false);
+    }
 }
 
-function finishReset() {
+async function finishReset() {
     const pass = document.getElementById('new-password').value;
     const confirm = document.getElementById('confirm-new-password').value;
 
     if (pass !== confirm) {
-        alert('Passwords do not match');
+        showMessage('Passwords do not match', 'error');
         return;
     }
 
-    alert('Password updated (mock)');
-    elements.resetModal.classList.add('hidden');
+    setLoading(true);
+
+    try {
+        const res = await fetch(`${API_URL}/update-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: state.resetEmail,
+                code: state.resetCode,
+                password: pass
+            })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update password');
+
+        showMessage('Password updated successfully', 'success');
+
+        // cleanup
+        state.resetEmail = null;
+        state.resetCode = null;
+
+        setTimeout(() => {
+            elements.resetModal.classList.add('hidden');
+        }, 800);
+
+    } catch (err) {
+        showMessage(err.message, 'error');
+    } finally {
+        setLoading(false);
+    }
 }
 
 if (elements.forgotBtn) {
