@@ -132,7 +132,7 @@ body::before{content:'';position:fixed;inset:0;
 ════════════════════════════════ */
 @media(max-width:660px){
   .two-col,.three-col,.four-col{grid-template-columns:1fr 1fr;}
-  .container{padding:24px 14px;}
+  .container{padding: 50px 14px 24px 14px;}
   .logo{font-size:60px;letter-spacing:3px;}
   .header{gap:12px;margin-bottom:24px;}
   .card{padding:18px;}
@@ -154,7 +154,7 @@ body::before{content:'';position:fixed;inset:0;
    RESPONSIVE — MOBILE 480px
 ════════════════════════════════ */
 @media(max-width:480px){
-  .container{padding:16px 12px;}
+  .container{padding: 50px 12px 24px 12px;}
   .logo{font-size:46px;letter-spacing:2px;}
   .tagline{font-size:11px;letter-spacing:1px;}
   .header{gap:10px;margin-bottom:20px;align-items:center;}
@@ -251,7 +251,7 @@ body::before{content:'';position:fixed;inset:0;
    RESPONSIVE — TINY 360px
 ════════════════════════════════ */
 @media(max-width:360px){
-  .container{padding:12px 10px;}
+  .container{padding: 50px 10px 24px 10px;}
   .logo{font-size:38px;}
   .kpi-grid{grid-template-columns:1fr 1fr;}
   .stats-row{grid-template-columns:1fr 1fr 1fr;}
