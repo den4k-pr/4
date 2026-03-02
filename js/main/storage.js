@@ -12,48 +12,27 @@ const log = (...args) => console.log('%c[Storage]', 'color:#4CAF50', ...args);
 const warn = (...args) => console.warn('%c[Storage]', 'color:#FF9800', ...args);
 const error = (...args) => console.error('%c[Storage]', 'color:#F44336', ...args);
 
-function readCache(key, fallback = {}) {
-    const raw = localStorage.getItem(key);
-    log(`Reading cache key="${key}"`, raw);
-
-    try {
-        return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-        error(`Failed to parse cache key="${key}"`, e);
-        return fallback;
-    }
-}
-
-function writeCache(key, value) {
-    log(`Writing cache key="${key}"`, value);
-    localStorage.setItem(key, JSON.stringify(value));
-}
-
 /**
  * ============================
- * STATE (INIT FROM CACHE)
+ * STATE (SERVER-ONLY)
  * ============================
- * Ініціалізується миттєво з localStorage,
- * щоб UI не розвалився при старті.
+ * Ініціалізується порожніми даними.
  */
 
-const cachedCalc_edgrind = readCache('fuel_calc_v3_edgrind', {});
-const cachedDays_edgrind = readCache('fuel_days_v3_edgrind', {});
-
 export let state = {
-    sex: cachedCalc_edgrind.sex || 'male',
-    days: cachedDays_edgrind,
-    calc: cachedCalc_edgrind,
+    sex: 'male',
+    days: {},
+    calc: {},
     curMonth: new Date().getMonth(),
     curYear: new Date().getFullYear(),
     mDate: null,
     mStatus: null,
-    performer: localStorage.getItem('currentPerformer') || 'default',
+    performer: 'default',
     userId: null,
     token: null
 };
 
-log('Initial state hydrated from cache:', structuredClone(state));
+log('Initial state (server-only):', structuredClone(state));
 
 /**
  * ============================
@@ -65,11 +44,11 @@ log('Initial state hydrated from cache:', structuredClone(state));
 
 async function triggerServerSync(key, payload) {
     if (!state.userId || !state.token) {
-        console.warn('[Sync] No userId or token, skipping server sync');
+        warn('[Sync] No userId or token, skipping server sync');
         return;
     }
 
-    console.log('[Sync] Sending to server:', { storageKey: key, payload }); // ПЕРЕВІР ЦЕ В КОНСОЛІ
+    log('[Sync] Sending to server:', { storageKey: key, payload });
 
     try {
         const response = await fetch(`${API_BASE}/${state.userId}`, {
@@ -86,9 +65,9 @@ async function triggerServerSync(key, payload) {
             const errData = await response.json();
             throw new Error(errData.error || `Server status: ${response.status}`);
         }
-        console.log(`[Cloud] ${key} synced.`);
+        log(`[Cloud] ${key} synced.`);
     } catch (err) {
-        console.error(`[Cloud Sync Error]`, err.message);
+        error('[Cloud Sync Error]', err.message);
     }
 }
 
@@ -97,7 +76,7 @@ async function triggerServerSync(key, payload) {
  * FETCH INITIAL DATA (STARTUP)
  * ============================
  * Тягнемо свіжі дані з сервера
- * і оновлюємо локальний кеш
+ * і оновлюємо стан
  */
 
 export async function fetchInitialData(userId, token) {
@@ -125,53 +104,34 @@ export async function fetchInitialData(userId, token) {
             return;
         }
 
-        let hasChanges = false;
-
         /**
          * ---- CALC ----
          */
-        if (
-            cloudData.fuel_calc_v3_edgrind &&
-            Object.keys(cloudData.fuel_calc_v3_edgrind).length > 0
-        ) {
+        if (cloudData.fuel_calc_v3_edgrind && Object.keys(cloudData.fuel_calc_v3_edgrind).length > 0) {
             log('Updating calc from cloud', cloudData.fuel_calc_v3_edgrind);
 
             state.calc = cloudData.fuel_calc_v3_edgrind;
-            writeCache('fuel_calc_v3_edgrind', state.calc);
 
             if (state.calc.sex) {
                 state.sex = state.calc.sex;
                 log('Sex updated from calc', state.sex);
             }
-
-            hasChanges = true;
         } else {
-            log('Cloud calc empty → keeping local cache');
+            log('Cloud calc empty → keeping default state');
         }
 
         /**
          * ---- DAYS ----
          */
-        if (
-            cloudData.fuel_days_v3_edgrind &&
-            Object.keys(cloudData.fuel_days_v3_edgrind).length > 0
-        ) {
+        if (cloudData.fuel_days_v3_edgrind && Object.keys(cloudData.fuel_days_v3_edgrind).length > 0) {
             log('Updating days from cloud', cloudData.fuel_days_v3_edgrind);
 
             state.days = cloudData.fuel_days_v3_edgrind;
-            writeCache('fuel_days_v3_edgrind', state.days);
-
-            hasChanges = true;
         } else {
-            log('Cloud days empty → keeping local cache');
+            log('Cloud days empty → keeping default state');
         }
 
-        if (hasChanges) {
-            log('Local cache updated from cloud');
-            log('Current state after sync:', structuredClone(state));
-        } else {
-            log('No cloud changes applied');
-        }
+        log('State after initial fetch:', structuredClone(state));
 
     } catch (err) {
         warn('Cloud unreachable → offline mode', err.message);
@@ -184,11 +144,10 @@ export async function fetchInitialData(userId, token) {
  * ============================
  */
 
-export function saveDaysToCache(newDays) {
-    log('saveDaysToCache called', newDays);
+export function saveDaysToServer(newDays) {
+    log('saveDaysToServer called', newDays);
 
     state.days = newDays;
-    writeCache('fuel_days_v3_edgrind', newDays);
 
     triggerServerSync('fuel_days_v3_edgrind', newDays);
 
@@ -201,8 +160,8 @@ export function saveDaysToCache(newDays) {
  * ============================
  */
 
-export function saveCalcToCache(newCalc) {
-    log('saveCalcToCache called', newCalc);
+export function saveCalcToServer(newCalc) {
+    log('saveCalcToServer called', newCalc);
 
     state.calc = newCalc;
 
@@ -211,7 +170,6 @@ export function saveCalcToCache(newCalc) {
         log('Sex updated from calc save', state.sex);
     }
 
-    writeCache('fuel_calc_v3_edgrind', newCalc);
     triggerServerSync('fuel_calc_v3_edgrind', newCalc);
 
     log('Calc saved. Current state.calc:', structuredClone(state.calc));
