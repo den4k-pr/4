@@ -9,6 +9,27 @@ export function hideMessage() {
     elements.msgBox.className = '';
 }
 
+export function openResetModal() {
+    elements.resetModal.classList.remove('hidden');
+    state.resetMode = 'email';
+}
+
+export function goToCodeStep() {
+    elements.stepEmail.classList.add('hidden');
+    elements.stepCode.classList.remove('hidden');
+    state.resetMode = 'code';
+}
+
+export function goToPasswordStep() {
+    elements.stepCode.classList.add('hidden');
+    elements.stepPassword.classList.remove('hidden');
+    state.resetMode = 'password';
+}
+
+export function closeResetModal() {
+    elements.resetModal.classList.add('hidden');
+}
+
 export function setLoading(isLoading) {
     elements.submitBtn.disabled = isLoading;
     elements.btnText.style.display = isLoading ? 'none' : 'block';

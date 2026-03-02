@@ -17,9 +17,15 @@ export const elements = {
     msgBox: document.getElementById('msg-box'),
     tabLogin: document.getElementById('tab-login'),
     tabRegister: document.getElementById('tab-register'),
-    form: document.getElementById('auth-form')
+    form: document.getElementById('auth-form'),
+    forgotBtn: document.getElementById('forgot-password'),
+    resetModal: document.getElementById('reset-modal'),
+    stepEmail: document.getElementById('step-email'),
+    stepCode: document.getElementById('step-code'),
+    stepPassword: document.getElementById('step-password')
 };
 
 export let state = {
-    isLoginMode: true
+    isLoginMode: true,
+    resetMode: null
 };
