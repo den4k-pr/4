@@ -1,4 +1,4 @@
-import { state, saveDaysToServer, saveDaysToServer as saveDaysToCache, MONTHS, DAYS_S, DAYS_F } from './storage.js';
+import { state, saveDaysToServer, saveCalcToServer, saveDaysToServer as saveDaysToCache, MONTHS, DAYS_S, DAYS_F } from './storage.js';
 import { idealWeights, bmi, bmiCategory } from './formulas.js';
 
 export function setSex(s, btn) {
