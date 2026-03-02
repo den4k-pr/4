@@ -131,13 +131,13 @@ export async function fetchInitialData(userId, token) {
          * ---- CALC ----
          */
         if (
-            cloudData.fuel_calc_v3 &&
-            Object.keys(cloudData.fuel_calc_v3).length > 0
+            cloudData.fuel_calc_v3_edgrind &&
+            Object.keys(cloudData.fuel_calc_v3_edgrind).length > 0
         ) {
-            log('Updating calc from cloud', cloudData.fuel_calc_v3);
+            log('Updating calc from cloud', cloudData.fuel_calc_v3_edgrind);
 
-            state.calc = cloudData.fuel_calc_v3;
-            writeCache('fuel_calc_v3', state.calc);
+            state.calc = cloudData.fuel_calc_v3_edgrind;
+            writeCache('fuel_calc_v3_edgrind', state.calc);
 
             if (state.calc.sex) {
                 state.sex = state.calc.sex;
@@ -153,13 +153,13 @@ export async function fetchInitialData(userId, token) {
          * ---- DAYS ----
          */
         if (
-            cloudData.fuel_days_v3 &&
-            Object.keys(cloudData.fuel_days_v3).length > 0
+            cloudData.fuel_days_v3_edgrind &&
+            Object.keys(cloudData.fuel_days_v3_edgrind).length > 0
         ) {
-            log('Updating days from cloud', cloudData.fuel_days_v3);
+            log('Updating days from cloud', cloudData.fuel_days_v3_edgrind);
 
-            state.days = cloudData.fuel_days_v3;
-            writeCache('fuel_days_v3', state.days);
+            state.days = cloudData.fuel_days_v3_edgrind;
+            writeCache('fuel_days_v3_edgrind', state.days);
 
             hasChanges = true;
         } else {
@@ -188,9 +188,9 @@ export function saveDaysToCache(newDays) {
     log('saveDaysToCache called', newDays);
 
     state.days = newDays;
-    writeCache('fuel_days_v3', newDays);
+    writeCache('fuel_days_v3_edgrind', newDays);
 
-    triggerServerSync('fuel_days_v3', newDays);
+    triggerServerSync('fuel_days_v3_edgrind', newDays);
 
     log('Days saved. Current state.days:', structuredClone(state.days));
 }
@@ -211,8 +211,8 @@ export function saveCalcToCache(newCalc) {
         log('Sex updated from calc save', state.sex);
     }
 
-    writeCache('fuel_calc_v3', newCalc);
-    triggerServerSync('fuel_calc_v3', newCalc);
+    writeCache('fuel_calc_v3_edgrind', newCalc);
+    triggerServerSync('fuel_calc_v3_edgrind', newCalc);
 
     log('Calc saved. Current state.calc:', structuredClone(state.calc));
 }
