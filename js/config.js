@@ -20,6 +20,7 @@ export const elements = {
     form: document.getElementById('auth-form'),
     forgotBtn: document.getElementById('forgot-password'),
     resetModal: document.getElementById('reset-modal'),
+    resetModalClose: document.getElementById('reset-modal-close'),
     stepEmail: document.getElementById('step-email'),
     stepCode: document.getElementById('step-code'),
     stepPassword: document.getElementById('step-password')

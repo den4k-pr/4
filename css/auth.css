@@ -295,6 +295,15 @@ body {
    ═══════════════════════════════════════════════ */
 
 /* Сама модалка, що перекриває вміст картки */
+#reset-modal-close{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 18px;
+    line-height: 18;
+    display: block;
+    color: #fff;
+}
 .reset-modal {
     position: absolute;
     top: 0;

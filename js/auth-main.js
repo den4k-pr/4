@@ -196,6 +196,17 @@ if (elements.forgotBtn) {
 
 setupCodeInputs();
 
+elements.resetModalClose.addEventListener('click', () => {
+    closeResetModal();
+
+    // Якщо хочеш, щоб форма скидалась на перший крок:
+    elements.stepEmail.classList.remove('hidden');   // показуємо поле для введення email
+    elements.stepCode.classList.add('hidden');       // ховаємо крок з кодом
+    elements.stepPassword.classList.add('hidden');   // ховаємо крок з паролем
+    state.resetMode = 'email';                       // встановлюємо режим на початковий
+});
+
+
 window.goToCodeStep = goToCodeStep;
 window.goToPasswordStep = goToPasswordStep;
 window.finishReset = finishReset;
