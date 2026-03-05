@@ -107,10 +107,10 @@ export async function fetchInitialData(userId, token) {
         /**
          * ---- CALC ----
          */
-        if (cloudData.fuel_calc_v3_edgrind && Object.keys(cloudData.fuel_calc_v3_edgrind).length > 0) {
-            log('Updating calc from cloud', cloudData.fuel_calc_v3_edgrind);
+        if (cloudData.fuel_calc_v3_zubalenok && Object.keys(cloudData.fuel_calc_v3_zubalenok).length > 0) {
+            log('Updating calc from cloud', cloudData.fuel_calc_v3_zubalenok);
 
-            state.calc = cloudData.fuel_calc_v3_edgrind;
+            state.calc = cloudData.fuel_calc_v3_zubalenok;
 
             if (state.calc.sex) {
                 state.sex = state.calc.sex;
@@ -123,10 +123,10 @@ export async function fetchInitialData(userId, token) {
         /**
          * ---- DAYS ----
          */
-        if (cloudData.fuel_days_v3_edgrind && Object.keys(cloudData.fuel_days_v3_edgrind).length > 0) {
-            log('Updating days from cloud', cloudData.fuel_days_v3_edgrind);
+        if (cloudData.fuel_days_v3_zubalenok && Object.keys(cloudData.fuel_days_v3_zubalenok).length > 0) {
+            log('Updating days from cloud', cloudData.fuel_days_v3_zubalenok);
 
-            state.days = cloudData.fuel_days_v3_edgrind;
+            state.days = cloudData.fuel_days_v3_zubalenok;
         } else {
             log('Cloud days empty → keeping default state');
         }
@@ -149,7 +149,7 @@ export function saveDaysToServer(newDays) {
 
     state.days = newDays;
 
-    triggerServerSync('fuel_days_v3_edgrind', newDays);
+    triggerServerSync('fuel_days_v3_zubalenok', newDays);
 
     log('Days saved. Current state.days:', structuredClone(state.days));
 }
@@ -170,7 +170,7 @@ export function saveCalcToServer(newCalc) {
         log('Sex updated from calc save', state.sex);
     }
 
-    triggerServerSync('fuel_calc_v3_edgrind', newCalc);
+    triggerServerSync('fuel_calc_v3_zubalenok', newCalc);
 
     log('Calc saved. Current state.calc:', structuredClone(state.calc));
 }
