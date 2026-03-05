@@ -11,7 +11,7 @@
 }
 
 body {
-    background: linear-gradient(338deg, #000000 0%, #361212 100%);
+    background: linear-gradient(338deg, #000000 0%, #353612 100%);
     color: #fff;
     display: flex;
     justify-content: center;
@@ -30,7 +30,7 @@ body {
 }
 
 .blob.red {
-    background: #ff2442;
+    background: #ffb624;
     width: 300px;
     height: 300px;
     top: -50px;
@@ -114,9 +114,9 @@ body {
 }
 
 .tab-btn.active {
-    background: #ff2442;
+    background: #c8f135;
     color: #fff;
-    box-shadow: 0 4px 12px rgb(229 70 70 / 30%);
+    box-shadow: 0 4px 12px rgba(229, 203, 70, 0.3);
 }
 
 /* Form Fields */
@@ -148,7 +148,7 @@ body {
 }
 
 .input-group input:focus {
-    border-color: #ff2442;
+    border-color: #c8f135;
     background: rgba(0, 0, 0, 0.4);
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
@@ -161,7 +161,7 @@ body {
 .submit-btn {
     width: 100%;
     padding: 14px;
-    background: #ff2442;
+    background: #c8f135;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -173,9 +173,9 @@ body {
 }
 
 .submit-btn:hover {
-    background: #c33333;
+    background: #c8f135b6;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(229, 70, 70, 0.4);
+    box-shadow: 0 8px 20px rgba(221, 229, 70, 0.4);
 }
 
 .submit-btn:disabled {
@@ -349,7 +349,7 @@ body {
 }
 
 .reset-step input:focus {
-    border-color: #ff2442;
+    border-color: #c8f135;
     background: rgba(229, 70, 70, 0.05);
 }
 
@@ -377,7 +377,7 @@ body {
 .reset-step button {
     width: 100%;
     padding: 14px;
-    background: #ff2442;
+    background: #c8f135;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -389,7 +389,7 @@ body {
 }
 
 .reset-step button:hover {
-    background: #c33333;
+    background: #c3b233;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(229, 70, 70, 0.3);
 }
