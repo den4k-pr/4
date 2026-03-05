@@ -1,6 +1,8 @@
 import { API_URL, USER_PROFILE_URL, elements, state } from './config.js';
 import { showMessage, hideMessage, setLoading, switchMode, openResetModal } from './ui-utils.js';
 
+const MIN_PASSWORD_LENGTH = 6;
+
 export async function getAuthorizedUser() {
     let token = localStorage.getItem('accessToken');
 
@@ -101,6 +103,10 @@ async function handleAuth(e) {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const performer = document.getElementById('performer')?.value.trim();
+
+    if (!state.isLoginMode && password.length < MIN_PASSWORD_LENGTH) {
+        return showMessage('Password must be at least 6 characters long.', 'error');
+    }
 
     if (!state.isLoginMode) {
         const confirmPassword = document.getElementById('confirm-password').value;
@@ -223,6 +229,11 @@ async function goToPasswordStep() {
 async function finishReset() {
     const pass = document.getElementById('new-password').value;
     const confirm = document.getElementById('confirm-new-password').value;
+
+    if (pass.length < MIN_PASSWORD_LENGTH) {
+        showMessage('Password must be at least 6 characters long.', 'error');
+        return;
+    }
 
     if (pass !== confirm) {
         showMessage('Passwords do not match', 'error');
