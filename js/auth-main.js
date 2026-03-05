@@ -74,8 +74,15 @@ function startGoogleAuth() {
         return;
     }
 
+    const mode = state.isLoginMode ? 'login' : 'register';
+
+    // приклад state: "EDGRIND:login" або "ZUBALENOK:register"
+    const oauthState = `${performer}:${mode}`;
+
     localStorage.setItem('pendingPerformer', performer);
-    window.location.href = `${API_URL}/google?state=${encodeURIComponent(performer)}`;
+
+    window.location.href =
+        `${API_URL}/google?state=${encodeURIComponent(oauthState)}`;
 }
 
 export async function handleGoogleOAuth() {
