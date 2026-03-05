@@ -10,7 +10,7 @@ const elements = {
 function updateUserEmailBadge(email) {
     const badge = document.getElementById('user-email-badge'); // припускаємо, що він уже в HTML
     if (!badge) return;
-    badge.textContent = email;
+    badge.textContent = email.charAt(0).toUpperCase();;
 }
 
 function hidePreloader() {
